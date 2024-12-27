@@ -1,4 +1,8 @@
+import os
 import streamlit as st
+
+# Dezactivează dependențele grafice ale OpenCV
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 import cv2
 
 # Titlul aplicației
@@ -21,9 +25,6 @@ if uploaded_video:
     else:
         # Obține proprietățile videoclipului: lățime, înălțime și fps
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
-
-        # Definește o linie de interes pentru numărarea mașinilor
-        line_points = [(20, 400), (1080, 400)]
 
         try:
             # Importă și configurează modelul YOLO pentru numărare
