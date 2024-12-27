@@ -1,4 +1,8 @@
+import os
 import streamlit as st
+
+# Dezactivează dependențele grafice ale OpenCV
+os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 import cv2
 
 # Titlul aplicației
