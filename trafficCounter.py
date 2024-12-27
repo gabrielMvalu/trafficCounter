@@ -42,8 +42,9 @@ if uploaded_video:
                     break
 
                 # Procesează cadrul și numără mașinile
-                results = model(frame)
-                count += len(results.boxes)  # Numără toate obiectele detectate
+                results = model.predict(frame)
+                for result in results:
+                    count += len(result.boxes)  # Numără toate obiectele detectate
 
             # Afișează rezultatul final utilizatorului
             st.success(f"Număr total mașini: {count}")
