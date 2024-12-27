@@ -1,8 +1,4 @@
-import os
 import streamlit as st
-
-# Dezactivează dependențele grafice ale OpenCV
-os.environ["OPENCV_VIDEOIO_PRIORITY_MSMF"] = "0"
 import cv2
 
 # Titlul aplicației
@@ -46,9 +42,8 @@ if uploaded_video:
                     break
 
                 # Procesează cadrul și numără mașinile
-                results = model.predict(frame, stream=True)  # Utilizează stream pentru rezultate iterabile
-                for result in results:
-                    count += len(result.boxes)  # Numără toate obiectele detectate
+                results = model(frame)
+                count += len(results.boxes)  # Numără toate obiectele detectate
 
             # Afișează rezultatul final utilizatorului
             st.success(f"Număr total mașini: {count}")
