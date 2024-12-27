@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-import subprocess
+import ffmpeg
 
 # Titlul aplicației
 st.title("Numărătoare de mașini cu YOLO11")
@@ -16,9 +16,9 @@ if uploaded_video:
         f.write(uploaded_video.read())
 
     try:
-        # Extrage cadrele video folosind FFmpeg
+        # Extrage cadrele video folosind ffmpeg-python
         output_frames = "frames/output_frame_%04d.jpg"
-        subprocess.run(["ffmpeg", "-i", video_path, output_frames], check=True)
+        ffmpeg.input(video_path).output(output_frames).run()
         st.success("Cadrele video au fost extrase cu succes!")
 
         # Procesare YOLO pe cadrele extrase
@@ -26,5 +26,3 @@ if uploaded_video:
         # Implementarea YOLO pe cadre se face ulterior
     except Exception as e:
         st.error(f"A apărut o eroare la procesarea videoclipului: {e}")
-
-
