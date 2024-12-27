@@ -42,9 +42,8 @@ if uploaded_video:
                     break
 
                 # Procesează cadrul și numără mașinile
-                results = model.predict(frame, stream=True)  # Utilizează stream pentru rezultate iterabile
-                for result in results:
-                    count += len(result.boxes)  # Numără toate obiectele detectate
+                results = model(frame)
+                count += len(results.boxes)  # Numără toate obiectele detectate
 
             # Afișează rezultatul final utilizatorului
             st.success(f"Număr total mașini: {count}")
@@ -56,3 +55,4 @@ if uploaded_video:
 
         # Eliberează resursele utilizate de OpenCV
         cap.release()
+
