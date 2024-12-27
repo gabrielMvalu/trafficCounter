@@ -60,3 +60,4 @@ if uploaded_video:
 
         # Eliberează resursele utilizate de OpenCV
         cap.release()
+
