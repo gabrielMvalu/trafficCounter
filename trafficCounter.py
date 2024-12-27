@@ -1,59 +1,61 @@
 import streamlit as st
 import cv2
 
-# Titlul aplicației
-st.title("Numărătoare de mașini cu YOLO11")
+# Display a logo
+st.image("logo.png", width=200)
 
-# Upload pentru încărcarea unui fișier video
-uploaded_video = st.file_uploader("Încarcă un videoclip", type=["mp4", "avi", "mov"])
+# Application title
+st.title("Vehicle Counter with YOLO11")
 
-# Verifică dacă utilizatorul a încărcat un fișier
+# Upload a video file
+uploaded_video = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov"])
+
+# Check if a file has been uploaded
 if uploaded_video:
-    # Salvează videoclipul local pentru procesare
+    # Save the uploaded video locally for processing
     video_path = "uploaded_video.mp4"
     with open(video_path, "wb") as f:
         f.write(uploaded_video.read())
 
-    # Deschide videoclipul folosind OpenCV
+    # Open the video using OpenCV
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
-        st.error("Eroare la citirea videoclipului!")
+        st.error("Error reading the video file!")
     else:
-        # Obține proprietățile videoclipului: lățime, înălțime și fps
+        # Get video properties: width, height, and fps
         w, h, fps = (int(cap.get(x)) for x in (cv2.CAP_PROP_FRAME_WIDTH, cv2.CAP_PROP_FRAME_HEIGHT, cv2.CAP_PROP_FPS))
 
-        # Definește o linie de interes pentru numărarea mașinilor
+        # Define a line of interest for counting vehicles
         line_points = [(20, 400), (1080, 400)]
 
         try:
-            # Importă și configurează modelul YOLO pentru numărare
+            # Import and configure the YOLO model for counting
             from ultralytics import YOLO
 
-            # Inițializează modelul YOLO pentru numărare
+            # Initialize the YOLO model for counting
             model = YOLO("yolo11n.pt")
 
-            # Inițializează contorul pentru mașini
+            # Initialize the vehicle counter
             count = 0
 
-            # Iterează prin fiecare cadru al videoclipului
+            # Iterate through each frame of the video
             while cap.isOpened():
                 ret, frame = cap.read()
                 if not ret:
                     break
 
-                # Procesează cadrul și numără mașinile
+                # Process the frame and count the vehicles
                 results = model.predict(frame)
                 for result in results:
-                    count += len(result.boxes)  # Numără toate obiectele detectate
+                    count += len(result.boxes)  # Count all detected objects
 
-            # Afișează rezultatul final utilizatorului
-            st.success(f"Număr total mașini: {count}")
+            # Display the final result to the user
+            st.success(f"Total number of vehicles: {count}")
         except ImportError:
-            # Afișează un mesaj de eroare dacă lipsește biblioteca necesară
-            st.error("Biblioteca Ultralytics nu este instalată sau configurată corect. Verificați requirements.txt și reporniți aplicația.")
+            # Display an error message if the required library is missing
+            st.error("Ultralytics library is not installed or not configured properly. Check requirements.txt and restart the application.")
         except Exception as e:
-            st.error(f"A apărut o eroare: {e}")
+            st.error(f"An error occurred: {e}")
 
-        # Eliberează resursele utilizate de OpenCV
+        # Release resources used by OpenCV
         cap.release()
-
