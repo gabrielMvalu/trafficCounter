@@ -1,4 +1,4 @@
 streamlit
-opencv-python
-ultralytics
 opencv-python-headless
+ultralytics
+shapely>=2.0.0
