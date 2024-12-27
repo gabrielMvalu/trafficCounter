@@ -27,8 +27,10 @@ if uploaded_video:
 
         try:
             # Importă și configurează modelul YOLO pentru numărare
-            from ultralytics import solutions
-            counter = solutions.ObjectCounter(model="yolo11n.pt", region=line_points)
+            from ultralytics import YOLO
+
+            # Inițializează modelul YOLO pentru numărare
+            model = YOLO("yolo11n.pt")
 
             # Inițializează contorul pentru mașini
             count = 0
@@ -40,14 +42,16 @@ if uploaded_video:
                     break
 
                 # Procesează cadrul și numără mașinile
-                frame = counter.count(frame)
-                count += counter.total_count
+                results = model(frame)
+                count += len(results.boxes)  # Numără toate obiectele detectate
 
             # Afișează rezultatul final utilizatorului
             st.success(f"Număr total mașini: {count}")
         except ImportError:
             # Afișează un mesaj de eroare dacă lipsește biblioteca necesară
-            st.error("Biblioteca Ultralytics nu este instalată. Asigurați-vă că ați inclus-o în requirements.txt.")
+            st.error("Biblioteca Ultralytics nu este instalată sau configurată corect. Verificați requirements.txt și reporniți aplicația.")
+        except Exception as e:
+            st.error(f"A apărut o eroare: {e}")
 
         # Eliberează resursele utilizate de OpenCV
         cap.release()
