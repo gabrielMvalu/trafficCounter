@@ -52,7 +52,7 @@ class VehicleTracker:
         return self.counted_vehicles
 
 class VehicleCounter:
-    def __init__(self, model_path="yolov11s.pt", confidence=0.3):
+    def __init__(self, model_path="yolov8x.pt", confidence=0.3):
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.tracker = VehicleTracker()
@@ -132,7 +132,7 @@ def main():
     # Model selection
     model_option = st.sidebar.selectbox(
         "Select YOLO model",
-        ["yolov11s.pt", "yolov11m.pt", "yolov11l.pt", "yolov11x.pt"]
+        ["yolov8m.pt", "yolov8l.pt", "yolov8x.pt", "yolov11x.pt"]
     )
     
     # Debug settings
