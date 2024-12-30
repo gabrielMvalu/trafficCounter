@@ -1,0 +1,6 @@
+tracker:
+  type: "bytetrack"
+  low_confidence_threshold: 0.1
+  high_confidence_threshold: 0.6
+  match_threshold: 0.8
+  track_buffer: 30
