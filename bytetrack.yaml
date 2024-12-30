@@ -1,6 +1,9 @@
 tracker:
-  type: "bytetrack"
-  low_confidence_threshold: 0.1
-  high_confidence_threshold: 0.6
-  match_threshold: 0.8
-  track_buffer: 30
+  type: "bytetrack"  # Tipul tracker-ului, trebuie să fie "bytetrack"
+  high_confidence_threshold: 0.6  # Prag pentru asocieri de încredere ridicată
+  low_confidence_threshold: 0.1   # Prag pentru detectări de încredere scăzută
+  match_threshold: 0.8            # Prag pentru asocierea între obiecte
+  track_buffer: 30                # Numărul de cadre pentru a reține un ID pierdut
+  iou_threshold: 0.3              # Prag IoU pentru asocierea track-urilor
+  frame_rate: 30                  # Rata cadrelor video (FPS-ul videoclipului tău)
+  delta_time: 3                   # Timp maxim între două detectări consecutive
