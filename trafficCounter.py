@@ -23,7 +23,7 @@ def point_in_line(point, line_start, line_end, threshold=5):
     return d < threshold
 
 class VehicleCounter:
-    def __init__(self, model_path="yolov8n.pt", confidence=0.3):
+    def __init__(self, model_path="yolov8m.pt", confidence=0.1):
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.tracker = init_tracker()
