@@ -114,7 +114,7 @@ def main():
     # Model selection
     model_option = st.sidebar.selectbox(
         "Select YOLO model",
-        ["yolov8n.pt", "yolov8s.pt", "yolov8m.pt"]
+        ["yolov8n.pt", "yolov9x.pt", "yolov10x.pt"]
     )
     
     # Upload video
