@@ -5,7 +5,7 @@ from ultralytics import YOLO
 import time
 
 class VehicleCounter:
-    def __init__(self, model_path="yolov11n.pt", confidence=0.25):
+    def __init__(self, model_path="yolov10n.pt", confidence=0.25):
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.vehicle_count = 0
@@ -114,7 +114,7 @@ def main():
     # Model selection
     model_option = st.sidebar.selectbox(
         "Select YOLO model",
-        ["yolov11n.pt", "yolov11m.pt", "yolov11l.pt", "yolov11x.pt"]
+        ["yolov10n.pt", "yolov10m.pt", "yolov10l.pt", "yolov10x.pt"]
     )
     
     # Upload video
