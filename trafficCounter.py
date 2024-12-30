@@ -5,7 +5,7 @@ from ultralytics import YOLO
 import time
 
 class VehicleCounter:
-    def __init__(self, model_path="yolov8n.pt", confidence=0.25):
+    def __init__(self, model_path="yolov10n.pt", confidence=0.25):
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.vehicle_count = 0
