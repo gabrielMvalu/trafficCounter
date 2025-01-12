@@ -3,13 +3,15 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 import time
+from scipy.spatial import distance
 
 class VehicleCounter:
     def __init__(self, model_path="yolov10n.pt", confidence=0.25):
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.vehicle_count = 0
-        self.tracked_vehicles = set()
+        self.tracked_vehicles = {}
+        self.frame_id = 0
         # Clase pentru vehicule în YOLO
         self.vehicle_classes = {
             2: 'car', 
@@ -17,7 +19,7 @@ class VehicleCounter:
             5: 'bus', 
             7: 'truck'
         }
-        
+
     def draw_debug_info(self, frame, detections, line_y):
         """Desenează informații de debugging pe frame"""
         height, width = frame.shape[:2]
@@ -61,16 +63,13 @@ class VehicleCounter:
         # Rulează detectia YOLO
         results = self.model(frame, conf=self.confidence, verbose=False)
         
-        # Aplică tracking dacă este disponibil
-        try:
-            results = self.model.track(frame, conf=self.confidence, persist=True, verbose=False)
-        except Exception as e:
-            st.warning(f"Tracking nu este disponibil: {e}. Folosim doar detecție.")
-        
         height = frame.shape[0]
+        buffer_zone = 15  # Pixeli în jurul liniei
         
         if len(results) > 0 and results[0].boxes is not None:
             boxes = results[0].boxes
+            current_frame_objects = []
+
             for box in boxes:
                 # Verifică clasa
                 cls = int(box.cls[0].cpu().numpy())
@@ -79,22 +78,28 @@ class VehicleCounter:
                 
                 # Calculează centrul obiectului
                 x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                center_x = (x1 + x2) / 2
                 center_y = (y1 + y2) / 2
-                
+
+                current_frame_objects.append((center_x, center_y))
+
                 # Verifică dacă obiectul traversează linia
-                if abs(center_y - line_y) < 10:
-                    # Folosește ID-ul de tracking dacă este disponibil
-                    if hasattr(box, 'id') and box.id is not None:
-                        track_id = int(box.id[0])
-                        if track_id not in self.tracked_vehicles:
-                            self.tracked_vehicles.add(track_id)
-                            self.vehicle_count += 1
-                    else:
-                        # Dacă nu avem tracking, folosim poziția
-                        position_key = f"{int(x1)}_{int(y1)}"
-                        if position_key not in self.tracked_vehicles:
-                            self.tracked_vehicles.add(position_key)
-                            self.vehicle_count += 1
+                if line_y - buffer_zone <= center_y <= line_y + buffer_zone:
+                    matched = False
+
+                    for tracked_id, (tracked_x, tracked_y) in self.tracked_vehicles.items():
+                        if distance.euclidean((center_x, center_y), (tracked_x, tracked_y)) < 20:
+                            matched = True
+                            self.tracked_vehicles[tracked_id] = (center_x, center_y)
+                            break
+
+                    if not matched:
+                        self.vehicle_count += 1
+                        self.tracked_vehicles[self.frame_id] = (center_x, center_y)
+                        self.frame_id += 1
+
+            # Elimină vehiculele care nu au fost văzute în ultimele 50 de cadre
+            self.tracked_vehicles = {k: v for k, v in self.tracked_vehicles.items() if k > self.frame_id - 50}
         
         # Adaugă informații de debugging
         frame = self.draw_debug_info(frame, results, line_y)
