@@ -172,7 +172,7 @@ def main():
                 count_text.text(f"Vehicles counted: {counter.vehicle_count}")
                 
                 # Display frame
-                st.image(processed_frame, channels="RGB", use_column_width=True)
+                st.image(processed_frame, channels="RGB", use_container_width=True)
                 
                 frame_count += 1
             
