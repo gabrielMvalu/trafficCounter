@@ -20,14 +20,17 @@ class VehicleCounter:
             7: 'truck'
         }
 
-    def draw_debug_info(self, frame, detections, line_y):
+    def draw_debug_info(self, frame, detections, line_y1, line_y2):
         """Desenează informații de debugging pe frame"""
         height, width = frame.shape[:2]
         
-        # Desenează linia de numărare
-        cv2.line(frame, (0, line_y), (width, line_y), (255, 0, 0), 2)
-        cv2.putText(frame, "Counting Line", (10, line_y - 10), 
+        # Desenează liniile de numărare
+        cv2.line(frame, (0, line_y1), (width, line_y1), (255, 0, 0), 2)
+        cv2.putText(frame, "Counting Line 1", (10, line_y1 - 10), 
                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+        cv2.line(frame, (0, line_y2), (width, line_y2), (0, 255, 0), 2)
+        cv2.putText(frame, "Counting Line 2", (10, line_y2 - 10), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         
         # Desenează toate detecțiile
         if detections:
@@ -58,13 +61,13 @@ class VehicleCounter:
         
         return frame
 
-    def process_frame(self, frame, line_y):
+    def process_frame(self, frame, line_y1, line_y2):
         """Procesează un frame și numără vehiculele"""
         # Rulează detectia YOLO
         results = self.model(frame, conf=self.confidence, verbose=False)
         
         height = frame.shape[0]
-        buffer_zone = 15  # Pixeli în jurul liniei
+        buffer_zone = 10  # Pixeli în jurul liniei
         
         if len(results) > 0 and results[0].boxes is not None:
             boxes = results[0].boxes
@@ -83,38 +86,43 @@ class VehicleCounter:
 
                 current_frame_objects.append((center_x, center_y))
 
-                # Verifică dacă obiectul traversează linia
-                if line_y - buffer_zone <= center_y <= line_y + buffer_zone:
+                # Verifică dacă obiectul traversează liniile în ordine
+                if line_y1 - buffer_zone <= center_y <= line_y1 + buffer_zone:
                     matched = False
 
-                    for tracked_id, (tracked_x, tracked_y) in self.tracked_vehicles.items():
+                    for tracked_id, (tracked_x, tracked_y, passed_line2) in self.tracked_vehicles.items():
                         if distance.euclidean((center_x, center_y), (tracked_x, tracked_y)) < 20:
                             matched = True
-                            self.tracked_vehicles[tracked_id] = (center_x, center_y)
+                            self.tracked_vehicles[tracked_id] = (center_x, center_y, passed_line2)
                             break
 
                     if not matched:
-                        self.vehicle_count += 1
-                        self.tracked_vehicles[self.frame_id] = (center_x, center_y)
+                        self.tracked_vehicles[self.frame_id] = (center_x, center_y, False)
                         self.frame_id += 1
+
+                for tracked_id, (tracked_x, tracked_y, passed_line2) in list(self.tracked_vehicles.items()):
+                    if not passed_line2 and line_y2 - buffer_zone <= center_y <= line_y2 + buffer_zone:
+                        self.tracked_vehicles[tracked_id] = (center_x, center_y, True)
+                        self.vehicle_count += 1
 
             # Elimină vehiculele care nu au fost văzute în ultimele 50 de cadre
             self.tracked_vehicles = {k: v for k, v in self.tracked_vehicles.items() if k > self.frame_id - 50}
         
         # Adaugă informații de debugging
-        frame = self.draw_debug_info(frame, results, line_y)
+        frame = self.draw_debug_info(frame, results, line_y1, line_y2)
         
         return frame
 
 def main():
     st.set_page_config(page_title="Vehicle Counter", layout="wide")
     
-    st.title("Vehicle Counter with YOLO - Debug Mode")
+    st.title("Vehicle Counter with YOLO - Dual Line Counting")
     
     # Configurări în sidebar
     st.sidebar.header("Settings")
     confidence = st.sidebar.slider("Detection Confidence", 0.1, 1.0, 0.25)
-    line_position = st.sidebar.slider("Counting Line Position (%)", 0, 100, 60)
+    line_position1 = st.sidebar.slider("Counting Line 1 Position (%)", 0, 100, 40)
+    line_position2 = st.sidebar.slider("Counting Line 2 Position (%)", 0, 100, 60)
     
     # Model selection
     model_option = st.sidebar.selectbox(
@@ -156,8 +164,9 @@ def main():
             frame_count = 0
             total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
             
-            # Calculate counting line position
-            line_y = int(height * line_position / 100)
+            # Calculate counting line positions
+            line_y1 = int(height * line_position1 / 100)
+            line_y2 = int(height * line_position2 / 100)
             
             while cap.isOpened():
                 ret, frame = cap.read()
@@ -165,7 +174,7 @@ def main():
                     break
                 
                 # Process frame
-                processed_frame = counter.process_frame(frame, line_y)
+                processed_frame = counter.process_frame(frame, line_y1, line_y2)
                 
                 # Convert pentru display
                 processed_frame = cv2.cvtColor(processed_frame, cv2.COLOR_BGR2RGB)
